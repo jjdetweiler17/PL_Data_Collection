@@ -4,7 +4,6 @@ import os
 
 
 def get_data2(file_name_txt):
-    print("----------------------------------------------------------------------------------")
     report = open(file_name_txt, encoding="utf8").read().lower()
     # Replace escape sequences
     report = report.replace("\\n", "\n")
@@ -18,12 +17,10 @@ def get_data2(file_name_txt):
     else:
         fund_name = report[date_index:beg_index + 5]
     fund_name = fund_name.strip()
-    print(fund_name)
 
     for i in range(1000):
         if (report[i].isnumeric() and report[i+1].isalpha()) or (report[i].isalpha() and report[i+1].isnumeric()):
             report = report[:i+1] + '\n' + report[i+1:]
-
 
     # Find page nums in table of contents
     contents_index = report.find('financial statement')
@@ -34,7 +31,6 @@ def get_data2(file_name_txt):
         if char.isnumeric():
             page_num += char
     page_num = str(int(page_num[0:2]) - 1)
-    print(page_num)
 
     # Find end block page num
     contents_final_index = report.find('statement of changes in net assets', contents_index)
@@ -44,7 +40,6 @@ def get_data2(file_name_txt):
         if char.isnumeric():
             final_page_num += char
     final_page_num = str(int(final_page_num[0:2]) - 1)
-    print(final_page_num)
 
     # go to page index so that data can be searched first from that index
     if int(page_num) % 2 == 0:
@@ -97,7 +92,6 @@ def get_data2(file_name_txt):
         block_string = block_string[block_string.find("\n") + 1:]
     for i in range(len(data_list)):
         data_list[i] = data_list[i].strip()
-    print(data_list)
 
     for i in range(len(data_list)):
         if data_list[i].count("class") != 0:
@@ -134,11 +128,12 @@ path = R"C:\Users\jjdet\Desktop\PL_Data_Collection\\"
 txt_list = os.listdir(path + R"TXT_Holder")
 path = path + R"TXT_Holder\\"
 
+"""
 test_df = get_data2(path + "100-treasury-money-market-ar.txt")
 large_cap_df_new = get_data2(r"TXT_Holder\cb-large-cap-value-ar.txt")
 test_df_2 = get_data2(path + "absolute-return-ar.txt")
 test_df_3 = get_data2(path + "adjustable-rate-government-ar.txt")
-
+"""
 
 """
 print(len(test_df))
@@ -157,5 +152,22 @@ print(full_df)
 full_df = pd.merge(get_data2(path + txt_list[0]), get_data2(path + txt_list[1]), how='outer')
 for i in range(len(txt_list) - 3):
     full_df = pd.merge(full_df, get_data2(path + txt_list[i+2]), how='outer')
+
+nan_value = float("NaN")
+
+for val in full_df['Statement of Operations']:
+    if val.isnumeric():
+        full_df.replace(val, nan_value, inplace=True)
+
+full_df.replace("", nan_value, inplace=True)
+full_df.dropna(subset=['Statement of Operations'], inplace=True)
+
+for val in full_df['Statement of Operations']:
+    if len(val) >= 0 and val[0] == "|":
+        full_df.replace(val, nan_value, inplace=True)
+
+full_df.dropna(subset=['Statement of Operations'], inplace=True)
+
+print(full_df)
 
 full_df.to_csv(r'C:\Users\jjdet\Desktop\PL_Data_Collection\full_WF_spreadsheet.csv')
