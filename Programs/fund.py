@@ -7,6 +7,7 @@ columns = ['Statement of Operations']
 # !/usr/bin/python3
 # coding: utf-8
 
+
 from pdfminer.pdfinterp import PDFResourceManager, PDFPageInterpreter
 from pdfminer.converter import TextConverter
 from pdfminer.pdfpage import PDFPage
