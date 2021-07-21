@@ -168,6 +168,12 @@ for val in full_df['Statement of Operations']:
 
 full_df.dropna(subset=['Statement of Operations'], inplace=True)
 
-print(full_df)
+for i in range(len(full_df)):
+    if full_df.loc[i].reset_index().count("") >= len(full_df) - 1:
+        full_df.drop(index=i)
 
-full_df.to_csv(r'C:\Users\jjdet\Desktop\PL_Data_Collection\full_WF_spreadsheet.csv')
+print(full_df)
+print("-------------------------------------------------")
+
+
+# full_df.to_csv(r'C:\Users\jjdet\Desktop\PL_Data_Collection\full_WF_spreadsheet.csv')
