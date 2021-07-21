@@ -104,6 +104,15 @@ def get_data2(file_name_txt):
                 i += 1
         data_list[i] = data_list[i].replace("  ", " ")
 
+        if data_list[i].count("(") != 0:
+            start_ind = data_list[i].rfind("(")
+            end_ind = data_list[i].rfind(")")
+            data_list[i] = data_list[i][:start_ind] + data_list[i][end_ind+1:]
+
+        if data_list[i].count("(") != 0:
+            start_ind = data_list[i].rfind("(")
+            end_ind = data_list[i].rfind(")")
+            data_list[i] = data_list[i][:start_ind] + data_list[i][end_ind+1:]
     # print(data_list)
 
     data_list_dict = {}
@@ -168,12 +177,19 @@ for val in full_df['Statement of Operations']:
 
 full_df.dropna(subset=['Statement of Operations'], inplace=True)
 
-for i in range(len(full_df)):
-    if full_df.loc[i].reset_index().count("") >= len(full_df) - 1:
-        full_df.drop(index=i)
+full_df = full_df.transpose()
+full_df = full_df.reset_index()
 
+col_list = []
+for col in full_df.columns:
+    print(full_df[col].values[0])
+    if full_df[col].count() <= 3 or (type(full_df[col].values[0]) == str and len(full_df[col].values[0]) <= 4) or type(full_df) == float:
+        col_list.append(col)
+
+full_df = full_df.drop(columns=col_list)
+full_df = full_df.T
 print(full_df)
 print("-------------------------------------------------")
 
 
-# full_df.to_csv(r'C:\Users\jjdet\Desktop\PL_Data_Collection\full_WF_spreadsheet.csv')
+full_df.to_csv(r'C:\Users\jjdet\Desktop\PL_Data_Collection\full_WF_spreadsheet.csv')
