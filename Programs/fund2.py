@@ -85,7 +85,13 @@ def get_data2(file_name_txt):
     block_string = block_string.replace("$", "")
 
     # print(block_string)
-
+    last_ind = 0
+    for i in range(block_string.count(")")):
+        current_ind = block_string.find(")", last_ind + 1)
+        if block_string[current_ind - 1].isnumeric():
+            block_string = block_string[:current_ind + 1] + "\n" + block_string[current_ind + 1:]
+        last_ind = current_ind
+    block_string = block_string.replace("  ", "\n")
     data_list = []
     while block_string.count("\n") != 0:
         data_list.append(block_string[:block_string.find("\n")])
@@ -182,12 +188,11 @@ full_df = full_df.reset_index()
 
 col_list = []
 for col in full_df.columns:
-    print(full_df[col].values[0])
-    if full_df[col].count() <= 3 or (type(full_df[col].values[0]) == str and len(full_df[col].values[0]) <= 4) or type(full_df) == float:
+    if (full_df[col].count() <= 3 and full_df[col].count() != 0) or (type(full_df[col].values[0]) == str and len(full_df[col].values[0]) <= 4) or type(full_df) == float or full_df[col].nunique() == 2:
         col_list.append(col)
-
 full_df = full_df.drop(columns=col_list)
 full_df = full_df.T
+
 print(full_df)
 print("-------------------------------------------------")
 
