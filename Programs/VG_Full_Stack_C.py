@@ -16,17 +16,17 @@ def reformat_text(text):
     text = text.replace("\\x94", "\x94")
     text = text.replace("\\x0c", "\x0c")
 
-    for i in range(50):
+    for k in range(50):
         dots = ""
-        for x in range(51 - i):
+        for x in range(51 - k):
             dots += "."
         text = text.replace(dots, "")
-    for i in range(len(text) - 1):
-        if text[i].islower() and (text[i+1].isupper() or text[i+1].isnumeric()):
-            text = text[:i+1] + " " + text[i+1:]
-    for i in range(len(text) - 1):
-        if text[i].islower() and (text[i+1].isupper() or text[i+1].isnumeric()):
-            text = text[:i+1] + " " + text[i+1:]
+    for k in range(len(text) - 1):
+        if text[k].islower() and (text[k + 1].isupper() or text[k + 1].isnumeric()):
+            text = text[:k + 1] + " " + text[k + 1:]
+    for k in range(len(text) - 1):
+        if text[k].islower() and (text[k + 1].isupper() or text[k + 1].isnumeric()):
+            text = text[:k + 1] + " " + text[k + 1:]
     text = text.lower()
     return text
 
@@ -121,12 +121,31 @@ def extract_data(path):
         elif page.find("statement of operations", 0, nl_ind) != -1:
             statements_page_list.append(page)
     print(type(fund_name_list))
+    max = len(statements_page_list) - 1
+    h = 0
+    while h < max:
+        nl_ind = statements_page_list[h].find("\n")
+        nl_ind = statements_page_list[h].find("\n", nl_ind + 1)
+        if statements_page_list[h].find("statement of assets and liabilities", 0, nl_ind) != -1 and \
+                statements_page_list[h + 1].find("statement of assets and liabilities", 0, nl_ind) != -1:
+            statements_page_list[h] = statements_page_list[h] + statements_page_list[h + 1]
+            statements_page_list.pop(h + 1)
+            max -= 1
+        elif statements_page_list[h].find("statement of operations", 0, nl_ind) != -1 and statements_page_list[h + 1].\
+                find("statement of operations", 0, nl_ind) != -1:
+            statements_page_list[h] = page_list[h] + page_list[h + 1]
+            statements_page_list.pop(h + 1)
+            max -= 1
+        h += 1
+
     if fund_name_list is None or len(fund_name_list) < 2:
         df = extract_data_sub(statements_page_list[0], fund_name)
     else:
         df = extract_data_sub(statements_page_list[0], fund_name_list[0])
     if len(statements_page_list) >= 2:
+        print(len(fund_name_list))
         for a in range(len(statements_page_list) - 2):
+            print(a)
             if fund_name_list is None or len(fund_name_list) < 2:
                 df = pd.merge(df, extract_data_sub(statements_page_list[a+2], fund_name), how="outer")
             else:
@@ -136,14 +155,37 @@ def extract_data(path):
 
 
 count = 0
-extract_data(pdf_list[25])
 pdf_list = os.listdir(path1)
-pdf_list = pdf_list[20:30]
 print(len(pdf_list))
 full_df = pd.merge(extract_data(pdf_list[0]), extract_data(pdf_list[1]), how='outer')
 for i in range(len(pdf_list) - 2):
     full_df = pd.merge(full_df, extract_data(pdf_list[i+2]), how='outer')
     print(count)
     count += 1
+
+nan_value = float("NaN")
+
+for val in full_df['Statement of Operations']:
+    if val.isnumeric():
+        full_df.replace(val, nan_value, inplace=True)
+
+full_df.replace("", nan_value, inplace=True)
+full_df.dropna(subset=['Statement of Operations'], inplace=True)
+
+for val in full_df['Statement of Operations']:
+    if len(val) >= 0 and val[0] == "|":
+        full_df.replace(val, nan_value, inplace=True)
+
+full_df.dropna(subset=['Statement of Operations'], inplace=True)
+
+full_df = full_df.transpose()
+full_df = full_df.reset_index()
+
+col_list = []
+for col in full_df.columns:
+    if (full_df[col].count() <= 3 and full_df[col].count() != 0) or (type(full_df[col].values[0]) == str and len(full_df[col].values[0]) <= 4) or type(full_df) == float or full_df[col].nunique() == 2:
+        col_list.append(col)
+full_df = full_df.drop(columns=col_list)
+full_df = full_df.T
 
 full_df.to_csv(r'C:\Users\jjdet\Desktop\PL_Data_Collection\full_VG_spreadsheet.csv')
