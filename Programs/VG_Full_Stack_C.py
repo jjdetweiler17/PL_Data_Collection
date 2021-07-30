@@ -3,7 +3,6 @@ import os
 import pandas as pd
 
 path1 = R"C:\Users\jjdet\Desktop\PL_Data_Collection\Vanguard\PDF_Holder\\"
-pdf_list = os.listdir(path1)
 
 
 def reformat_text(text):
@@ -121,21 +120,21 @@ def extract_data(path):
         elif page.find("statement of operations", 0, nl_ind) != -1:
             statements_page_list.append(page)
     print(type(fund_name_list))
-    max = len(statements_page_list) - 1
+    m = len(statements_page_list) - 1
     h = 0
-    while h < max:
+    while h < m:
         nl_ind = statements_page_list[h].find("\n")
         nl_ind = statements_page_list[h].find("\n", nl_ind + 1)
         if statements_page_list[h].find("statement of assets and liabilities", 0, nl_ind) != -1 and \
                 statements_page_list[h + 1].find("statement of assets and liabilities", 0, nl_ind) != -1:
             statements_page_list[h] = statements_page_list[h] + statements_page_list[h + 1]
             statements_page_list.pop(h + 1)
-            max -= 1
+            m -= 1
         elif statements_page_list[h].find("statement of operations", 0, nl_ind) != -1 and statements_page_list[h + 1].\
                 find("statement of operations", 0, nl_ind) != -1:
             statements_page_list[h] = page_list[h] + page_list[h + 1]
             statements_page_list.pop(h + 1)
-            max -= 1
+            m -= 1
         h += 1
 
     if fund_name_list is None or len(fund_name_list) < 2:
@@ -183,7 +182,9 @@ full_df = full_df.reset_index()
 
 col_list = []
 for col in full_df.columns:
-    if (full_df[col].count() <= 3 and full_df[col].count() != 0) or (type(full_df[col].values[0]) == str and len(full_df[col].values[0]) <= 4) or type(full_df) == float or full_df[col].nunique() == 2:
+    if (full_df[col].count() <= 3 and full_df[col].count() != 0) or (type(full_df[col].values[0]) == str and
+                                                                     len(full_df[col].values[0]) <= 4) or \
+            type(full_df) == float or full_df[col].nunique() == 2:
         col_list.append(col)
 full_df = full_df.drop(columns=col_list)
 full_df = full_df.T
